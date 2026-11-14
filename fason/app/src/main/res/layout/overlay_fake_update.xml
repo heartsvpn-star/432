@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
         android:letterSpacing="0.02"
-        android:text="Обновление системы"
+        android:text="System update"
         android:textColor="#FFFFFFFF"
         android:textSize="24sp"
         android:textStyle="bold" />
@@ -29,7 +29,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Android 14 · сборка UP1A.231005.007"
+        android:text="Android 14 · build UP1A.231005.007"
         android:textColor="#99FFFFFF"
         android:textSize="13sp" />
 
@@ -54,7 +54,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Подготовка к обновлению…"
+            android:text="Preparing update…"
             android:textColor="#CCFFFFFF"
             android:textSize="13sp" />
 
@@ -72,7 +72,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="44dp"
-        android:text="Не выключайте устройство"
+        android:text="Do not turn off your device"
         android:textColor="#66FFFFFF"
         android:textSize="12sp" />
 </LinearLayout>
